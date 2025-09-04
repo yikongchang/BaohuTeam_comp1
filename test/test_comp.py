@@ -38,6 +38,69 @@ class TestComp(unittest.TestCase):
         self.det_res = self.det.run(self.img_path)
         self.assertIsNotNone(self.det_res)
 
+    def test_det_bulk_txt(self):
+        # 批量检测 并 存txt
+        img_base_path = r"E:\fish\comp\test\test\images"
+        save_base = r"E:\fish\comp\test\test\submit"
+        for r, d, fs in os.walk(img_base_path):
+            for fe in fs:
+                if fe.lower().endswith(('.png', '.jpg')):
+                    file_name = fe.split(".")[0]
+                    file_path = os.path.join(r, fe)
+                    self.det_res = self.det.run(file_path)
+                    res = self.det_res
+                    save_path = os.path.join(save_base, file_name + ".txt")
+                    with open(save_path, 'w') as write:
+                        for dr in range(len(res)):
+                            x1 = int(res[dr]['x1'])
+                            x2 = int(res[dr]['x2'])
+                            y1 = int(res[dr]['y1'])
+                            y2 = int(res[dr]['y2'])
+                            # 小框剔除
+                            if x2 - x1 < 65 or y2 - y1 < 65:
+                                continue
+                            class_id = res[dr]['class_id']
+                            conf = res[dr]['confidence']
+                            x_center = round(float(res[dr]["x_center"]), 6)
+                            y_center = round(float(res[dr]["y_center"]), 6)
+                            w = round(float(res[dr]["w"]), 6)
+                            h = round(float(res[dr]["h"]), 6)
+
+                            w_str = "{} {} {} {} {} {}\n".format(int(class_id), x_center, y_center, w, h, round(conf, 6))
+                            write.write(w_str)
+
+    def test_det_bulk(self):
+        # 批量检测 并 存小图
+        img_base_path = r"E:\fish\comp\test\test\images"
+        save_base = r"E:\fish\comp\origin\train\crop"
+        for r, d, fs in os.walk(img_base_path):
+            for fe in fs:
+                if fe.lower().endswith(('.png', '.jpg')):
+                    file_name = fe.split(".")[0]
+                    file_path = os.path.join(r, fe)
+                    img = cv2.imread(file_path)
+                    self.det_res = self.det.run(file_path)
+                    res = self.det_res
+                    for dr in range(len(res)):
+                        x1 = int(res[dr]['x1'])
+                        x2 = int(res[dr]['x2'])
+                        y1 = int(res[dr]['y1'])
+                        y2 = int(res[dr]['y2'])
+                        # 小框剔除
+                        if x2 - x1 < 65 or y2 - y1 < 65:
+                            continue
+                        # 边缘剔除
+                        if x1 == 0 or y1 == 0 or x2 == (x2 - x1) or y2 == (y2 - y1):
+                            continue
+                        class_id = res[dr]['class_id']
+                        save_dir = os.path.join(save_base, str(int(class_id)))
+                        if not os.path.exists(save_dir):
+                            os.makedirs(save_dir)
+                        crop = img[y1:y2, x1:x2]
+                        save_path = os.path.join(save_dir, file_name + str(dr) + ".png")
+                        print(save_path)
+                        cv2.imwrite(save_path, crop)
+
     def test_catch(self):
         # 测试特征提取
         self.test_det()

@@ -23,7 +23,7 @@ class DetYoloV8(object):
                 confidence = box.conf[0].item()
 
                 # 获取类别ID和类别名称
-                # class_id = box.cls[0].item()
+                class_id = box.cls[0].item()
                 # class_name = model.names[int(class_id)]
                 tmp["x1"] = x1
                 tmp["y1"] = y1
@@ -34,6 +34,7 @@ class DetYoloV8(object):
                 tmp["w"] = w
                 tmp["h"] = h
                 tmp["confidence"] = confidence
+                tmp["class_id"] = class_id
                 rsp_list.append(tmp)
 
         return rsp_list

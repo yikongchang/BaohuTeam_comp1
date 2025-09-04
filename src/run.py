@@ -22,7 +22,7 @@ def main():
             if fe.lower().endswith(('.png', '.jpg')):
                 file_path = os.path.join(root, fe)
                 file_name = fe.split(".")[0]
-                save_txt_path = os.path.join(res_path, file_name, '.txt')
+                save_txt_path = os.path.join(res_path, file_name+'.txt')
                 det_res = det.run(file_path)
                 img = cv2.imread(file_path)
                 with open(save_txt_path, 'w') as write:
@@ -35,15 +35,16 @@ def main():
                         feature = cat.run(crop)
                         item = index.run(feature)[0]
                         # 获取归一化坐标
-                        x_center = int(d["x_center"])
-                        y_center = int(d["y_center"])
-                        w = int(d["w"])
-                        h = int(d["h"])
-                        # 这里做个conf 转换  用distance -> conf 1-distance = conf, 如果conf>100 则认为结果无效。conf=0.0
+                        x_center = round(float(d["x_center"]),6)
+                        y_center = round(float(d["y_center"]),6)
+                        w = round(float(d["w"]),6)
+                        h = round(float(d["h"]),6)
+                        # 这里做个conf 转换  用distance -> conf 100-distance = conf, 如果conf>100 则认为结果无效。conf=0.0
                         class_id = item['class_name']
                         dis = float(item['distance'])
-                        conf = (100-dis)/100 if conf<100 else 0.0
-                        w_str = "{} {} {} { {} {}\n ".format(class_id,x_center,y_center,w,h,conf)
+                        conf = (100-dis)/100 if dis<100 else 0.0
+                        w_str = "{} {} {} {} {} {}\n ".format(class_id,x_center,y_center,w,h,round(conf,6))
+                        print(w_str)
                         write.write(w_str)
 
 
